@@ -35,6 +35,15 @@ Available endpoints:
 - `GET /slots`
 - `GET /metrics`
 - `POST /allocate`
+- `POST /remove`
+
+Example remove request:
+
+```json
+{
+  "slot_id": 4
+}
+```
 
 ## Frontend
 

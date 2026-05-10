@@ -51,7 +51,10 @@ function App() {
         <Metric label="Total Slots" value={metrics?.total_slots ?? 0} />
         <Metric label="Free Slots" value={metrics?.free_slots ?? 0} />
         <Metric label="Occupied" value={metrics?.occupied_slots ?? 0} />
-        <Metric label="Success Rate" value={`${metrics?.success_rate ?? 0}`} />
+        <Metric
+          label="Occupancy"
+          value={`${metrics?.occupancy_percentage ?? 0}%`}
+        />
       </section>
 
       <section className="parking-panel">
@@ -65,7 +68,7 @@ function App() {
               key={slot.id}
               className={`slot ${slot.occupied ? "occupied" : "free"}`}
             >
-              <strong>Slot {slot.id + 1}</strong>
+              <strong>Slot {slot.id}</strong>
               <span>{slot.occupied ? slot.car_id : "Free"}</span>
             </article>
           ))}

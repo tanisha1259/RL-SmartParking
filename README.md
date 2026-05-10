@@ -36,8 +36,7 @@ Available endpoints:
 - `GET /metrics`
 - `POST /allocate`
 - `POST /remove`
-<<<<<<< HEAD
-=======
+
 
 Example remove request:
 
@@ -46,7 +45,7 @@ Example remove request:
   "slot_id": 4
 }
 ```
->>>>>>> origin/main
+
 
 ## Frontend
 

@@ -1,7 +1,10 @@
 from flask import Flask
 from flask_cors import CORS
 
-from routes.api import api_bp
+try:
+    from .routes.api import api_bp
+except ImportError:
+    from routes.api import api_bp
 
 
 def create_app():

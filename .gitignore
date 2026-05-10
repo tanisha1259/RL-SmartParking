@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+node_modules/
+dist/
+
+models/*.pkl
+experiments/*.csv
+experiments/*.json
+plots/*.png
+
+.DS_Store
+Thumbs.db

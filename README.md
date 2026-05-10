@@ -55,7 +55,15 @@ python rl/train.py
 Outputs:
 
 - `models/q_policy.pkl`
+- `experiments/rewards.csv`
 - `experiments/training_rewards.csv`
+- `experiments/occupancy.csv`
+- `experiments/training_summary.json`
+
+The training loop uses epsilon-greedy Q-learning with epsilon decay. The
+simulator includes incoming cars, departures, occupied/free slot handling,
+waiting penalties, traffic pressure, occupancy rewards, and congestion
+penalties.
 
 ## Evaluate
 
@@ -67,8 +75,17 @@ python plot_rewards.py
 Outputs:
 
 - `experiments/evaluation_summary.json`
+- `experiments/evaluation_summary.txt`
 - `experiments/comparison_rewards.csv`
 - `plots/training_rewards.png`
+- `plots/occupancy.png`
+- `plots/rl_vs_baseline_rewards.png`
+- `plots/rl_vs_baseline_occupancy.png`
+
+The backend inference helper lives in `backend/rl/inference.py` and exposes:
+
+- `load_policy()`
+- `allocate_best_slot(state)`
 
 ## Docker
 

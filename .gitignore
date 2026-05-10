@@ -10,6 +10,7 @@ dist/
 models/*.pkl
 experiments/*.csv
 experiments/*.json
+experiments/*.txt
 plots/*.png
 
 .DS_Store

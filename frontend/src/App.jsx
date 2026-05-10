@@ -147,20 +147,19 @@ function App() {
         <Metric label="Total Slots" value={metrics?.total_slots ?? 0} />
         <Metric label="Occupied Slots" value={metrics?.occupied_slots ?? 0} />
         <Metric label="Free Slots" value={metrics?.free_slots ?? 0} />
-<<<<<<< HEAD
+
         <Metric label="Occupancy" value={`${occupancy}%`} accent />
-=======
         <Metric label="Occupied" value={metrics?.occupied_slots ?? 0} />
         <Metric
           label="Occupancy"
           value={`${metrics?.occupancy_percentage ?? 0}%`}
         />
->>>>>>> origin/main
+
       </section>
 
       <section className="parking-panel">
         <div className="panel-heading">
-<<<<<<< HEAD
+
           <div>
             <p className="eyebrow">Live parking grid</p>
             <h2>Slots</h2>
@@ -173,7 +172,7 @@ function App() {
               <i className="occupied-key" /> Occupied
             </span>
           </div>
-=======
+
           <h2>Parking Slots</h2>
           <span>{status}</span>
         </div>
@@ -187,7 +186,7 @@ function App() {
               <span>{slot.occupied ? slot.car_id : "Free"}</span>
             </article>
           ))}
->>>>>>> origin/main
+
         </div>
 
         {isLoading ? (

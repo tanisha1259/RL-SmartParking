@@ -103,6 +103,7 @@ class ParkingAllocator:
         }
 
 
+
     def remove(self, car_id=None, slot_id=None):
         occupied_slots = [slot for slot in self.slots if slot["occupied"]]
 
@@ -178,6 +179,8 @@ class ParkingAllocator:
 
         state = tuple(1 if slot["occupied"] else 0 for slot in self.slots)
         action_values = self.policy.get(state)
+
+
 
     def remove(self, slot_id):
         slot = self._find_slot(slot_id)

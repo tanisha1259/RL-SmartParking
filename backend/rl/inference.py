@@ -45,63 +45,8 @@ class ParkingAllocator:
             "metrics": self.get_metrics(),
         }
 
-<<<<<<< HEAD
-    def remove(self, car_id=None, slot_id=None):
-        occupied_slots = [slot for slot in self.slots if slot["occupied"]]
-
-        if not occupied_slots:
-            return {
-                "removed": False,
-                "message": "No occupied parking slots to free.",
-                "slot": None,
-            }
-
-        slot = None
-        if slot_id is not None:
-            slot = next(
-                (
-                    occupied_slot
-                    for occupied_slot in occupied_slots
-                    if occupied_slot["id"] == slot_id
-                ),
-                None,
-            )
-        elif car_id:
-            slot = next(
-                (
-                    occupied_slot
-                    for occupied_slot in occupied_slots
-                    if occupied_slot["car_id"] == car_id
-                ),
-                None,
-            )
-        else:
-            slot = occupied_slots[-1]
-
-        if slot is None:
-            return {
-                "removed": False,
-                "message": "Could not find that parked car.",
-                "slot": None,
-            }
-
-        freed_slot = slot.copy()
-        slot["occupied"] = False
-        slot["car_id"] = None
-
-        return {
-            "removed": True,
-            "message": "Parking slot freed successfully.",
-            "slot": freed_slot,
-        }
-
-    def _select_slot(self, free_slots):
-        state = tuple(1 if slot["occupied"] else 0 for slot in self.slots)
-        action_values = self.policy.get(state)
-=======
     def remove(self, slot_id):
         slot = self._find_slot(slot_id)
->>>>>>> origin/main
 
         if slot is None:
             return {

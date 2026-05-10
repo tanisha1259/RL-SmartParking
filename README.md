@@ -35,6 +35,7 @@ Available endpoints:
 - `GET /slots`
 - `GET /metrics`
 - `POST /allocate`
+- `POST /remove`
 
 ## Frontend
 

@@ -11,7 +11,7 @@ def home():
     return jsonify(
         {
             "message": "RL Smart Parking API",
-            "endpoints": ["/slots", "/metrics", "/allocate"],
+            "endpoints": ["/slots", "/metrics", "/allocate", "/remove"],
         }
     )
 
@@ -32,4 +32,14 @@ def allocate():
     car_id = data.get("car_id")
     result = allocator.allocate(car_id=car_id)
     status_code = 200 if result["allocated"] else 409
+    return jsonify(result), status_code
+
+
+@api_bp.post("/remove")
+def remove():
+    data = request.get_json(silent=True) or {}
+    car_id = data.get("car_id")
+    slot_id = data.get("slot_id")
+    result = allocator.remove(car_id=car_id, slot_id=slot_id)
+    status_code = 200 if result["removed"] else 404
     return jsonify(result), status_code

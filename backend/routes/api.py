@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, request
 
-from rl.inference import ParkingAllocator
+try:
+    from ..rl.inference import ParkingAllocator
+except ImportError:
+    from rl.inference import ParkingAllocator
 
 api_bp = Blueprint("api", __name__)
 allocator = ParkingAllocator()
@@ -11,7 +14,13 @@ def home():
     return jsonify(
         {
             "message": "RL Smart Parking API",
-            "endpoints": ["/slots", "/metrics", "/allocate"],
+            "endpoints": {
+                "GET /": "API health and endpoint list",
+                "GET /slots": "Current parking slot state",
+                "GET /metrics": "Current parking metrics",
+                "POST /allocate": "Allocate the nearest free slot",
+                "POST /remove": "Remove a car from a slot",
+            },
         }
     )
 
@@ -28,8 +37,14 @@ def metrics():
 
 @api_bp.post("/allocate")
 def allocate():
-    data = request.get_json(silent=True) or {}
-    car_id = data.get("car_id")
-    result = allocator.allocate(car_id=car_id)
+    result = allocator.allocate()
     status_code = 200 if result["allocated"] else 409
+    return jsonify(result), status_code
+
+
+@api_bp.post("/remove")
+def remove():
+    data = request.get_json(silent=True) or {}
+    result = allocator.remove(slot_id=data.get("slot_id"))
+    status_code = 200 if result["removed"] else 400
     return jsonify(result), status_code

@@ -1,0 +1,40 @@
+name: Backend Tests
+
+on:
+  push:
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Compile backend and RL modules
+        run: python -m compileall backend rl sim
+
+      - name: Smoke test backend API
+        run: |
+          python - <<'PY'
+          from backend.app import create_app
+
+          app = create_app()
+          client = app.test_client()
+
+          assert client.get("/").status_code == 200
+          assert client.get("/metrics").status_code == 200
+          PY
+
+      - name: Run lightweight training job
+        run: python rl/train.py --config configs/qlearning_ci.yaml

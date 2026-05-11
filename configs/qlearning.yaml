@@ -1,0 +1,46 @@
+# Canonical Q-learning training configuration for the smart parking agent.
+
+training:
+  # Total number of episodes to run during training.
+  episodes: 800
+
+  # Filename used when saving the trained Q-table policy under models/.
+  model_name: "policy_v1.pkl"
+
+environment:
+  # Number of parking slots available to the simulator and action space.
+  slot_count: 12
+
+  # Maximum simulator steps allowed in each episode.
+  max_steps: 80
+
+  # Probability that at least one new car arrives at a simulator step.
+  arrival_chance: 0.75
+
+  # Probability that an occupied slot becomes free at a simulator step.
+  departure_chance: 0.12
+
+  # Maximum queue length before arriving cars are rejected.
+  max_waiting: 8
+
+  # Preferred occupancy ratio used by the reward function for utilization.
+  target_occupancy: 0.85
+
+  # Optional random seed for reproducible simulator behavior; null keeps runs stochastic.
+  seed: null
+
+agent:
+  # Alpha: how strongly each new reward update changes existing Q-values.
+  learning_rate: 0.12
+
+  # Gamma: how much future rewards influence the current action value.
+  discount_factor: 0.92
+
+  # Initial epsilon value for epsilon-greedy exploration.
+  epsilon_start: 1.0
+
+  # Lower bound for epsilon after repeated decay.
+  epsilon_min: 0.03
+
+  # Multiplicative epsilon decay applied after every episode.
+  epsilon_decay: 0.992

@@ -6,14 +6,14 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY backend/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt ./backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-COPY backend /app/backend
-COPY configs /app/configs
-COPY models /app/models
-COPY rl /app/rl
-COPY sim /app/sim
+COPY backend ./backend
+COPY configs ./configs
+COPY models ./models
+COPY rl ./rl
+COPY sim ./sim
 
 EXPOSE 5001
 

@@ -4,57 +4,73 @@ import json
 import pickle
 import sys
 import uuid
-import yaml
 from pathlib import Path
-
-from q_learning import QLearningAgent
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT_DIR))
 
+from rl.config import load_qlearning_config
+from rl.experiment_tracking import ExperimentResult, append_experiment_result
+from rl.logging_config import configure_training_logger
+from rl.q_learning import QLearningAgent
 from sim.parking_env import ParkingEnv
 
 MODELS_DIR = ROOT_DIR / "models"
 EXPERIMENTS_DIR = ROOT_DIR / "experiments"
 PLOTS_DIR = ROOT_DIR / "plots"
+LOGS_DIR = ROOT_DIR / "logs"
+RESULTS_PATH = EXPERIMENTS_DIR / "results.csv"
+TRAINING_LOG_PATH = LOGS_DIR / "training.log"
 
 
 def train(config_path):
-    # Load configuration
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
+    config = load_qlearning_config(config_path)
+    logger = configure_training_logger(TRAINING_LOG_PATH)
 
-    episodes = config.get("episodes", 800)
     run_id = f"run_{uuid.uuid4().hex[:8]}"
 
-    env = ParkingEnv(slot_count=12, max_steps=80)
+    env = ParkingEnv(**config.environment.as_kwargs())
     agent = QLearningAgent(
         actions=range(env.slot_count),
-        learning_rate=config.get("learning_rate", 0.12),
-        discount_factor=config.get("discount_factor", 0.92),
-        epsilon=config.get("epsilon_start", 1.0),
-        epsilon_min=config.get("epsilon_min", 0.03),
-        epsilon_decay=config.get("epsilon_decay", 0.992),
+        learning_rate=config.agent.learning_rate,
+        discount_factor=config.agent.discount_factor,
+        epsilon=config.agent.epsilon_start,
+        epsilon_min=config.agent.epsilon_min,
+        epsilon_decay=config.agent.epsilon_decay,
     )
-    
+
     rewards = []
     occupancy_history = []
+    wait_times = []
 
-    print(f"Starting training run: {run_id}")
-    print(f"Config: {config}")
+    logger.info("Starting training run | run_id=%s | config=%s", run_id, config.raw)
 
-    for episode in range(1, episodes + 1):
+    for episode in range(1, config.training.episodes + 1):
         state = env.reset()
         total_reward = 0
         occupancy_total = 0
         waiting_total = 0
         traffic_total = 0
+        step = 0
         done = False
 
         while not done:
+            step += 1
             valid_actions = env.available_actions()
             action = agent.choose_action(state, valid_actions)
+            cars_served_before_step = env.cars_served
             next_state, reward, done, info = env.step(action)
+            allocation_success = info["cars_served"] > cars_served_before_step
+            _log_allocation_step(
+                logger=logger,
+                run_id=run_id,
+                episode=episode,
+                step=step,
+                action=action,
+                reward=reward,
+                epsilon=agent.epsilon,
+                allocation_success=allocation_success,
+            )
             next_valid_actions = env.available_actions()
             agent.learn(state, action, reward, next_state, done, next_valid_actions)
             state = next_state
@@ -67,6 +83,7 @@ def train(config_path):
         average_occupancy = occupancy_total / env.max_steps
         average_waiting = waiting_total / env.max_steps
         average_traffic = traffic_total / env.max_steps
+        wait_times.append(info["average_wait"])
         
         rewards.append(
             {
@@ -81,6 +98,13 @@ def train(config_path):
                 "avg_occupancy": round(average_occupancy, 3),
             }
         )
+        logger.info(
+            "Episode complete | run_id=%s | episode=%s | reward=%.3f | epsilon=%.4f",
+            run_id,
+            episode,
+            total_reward,
+            agent.epsilon,
+        )
         occupancy_history.append(
             {
                 "run_id": run_id,
@@ -90,14 +114,23 @@ def train(config_path):
             }
         )
 
-    model_name = config.get("model_name", "q_policy.pkl")
-    save_outputs(agent, rewards, occupancy_history, run_id, config, model_name)
-    print("Training complete.")
-    print(f"Policy saved to {MODELS_DIR / model_name}")
-    print(f"Rewards saved to {EXPERIMENTS_DIR / f'rewards_{run_id}.csv'}")
+    model_name = config.training.model_name
+    save_outputs(
+        agent,
+        rewards,
+        occupancy_history,
+        wait_times,
+        run_id,
+        config,
+        model_name,
+    )
+    logger.info("Training complete | run_id=%s", run_id)
+    logger.info("Policy saved | path=%s", MODELS_DIR / model_name)
+    logger.info("Rewards saved | path=%s", EXPERIMENTS_DIR / f"rewards_{run_id}.csv")
+    logger.info("Experiment result appended | path=%s", RESULTS_PATH)
 
 
-def save_outputs(agent, rewards, occupancy_history, run_id, config, model_name):
+def save_outputs(agent, rewards, occupancy_history, wait_times, run_id, config, model_name):
     MODELS_DIR.mkdir(exist_ok=True)
     EXPERIMENTS_DIR.mkdir(exist_ok=True)
     PLOTS_DIR.mkdir(exist_ok=True)
@@ -139,9 +172,11 @@ def save_outputs(agent, rewards, occupancy_history, run_id, config, model_name):
 
     summary = {
         "run_id": run_id,
-        "config_used": config,
+        "config_used": config.raw,
         "episodes": len(rewards),
         "final_epsilon": rewards[-1]["epsilon"],
+        "average_reward": round(_average(row["reward"] for row in rewards), 3),
+        "average_wait_time": round(_average(wait_times), 3),
         "average_reward_last_50": round(
             sum(row["reward"] for row in rewards[-50:]) / min(50, len(rewards)),
             3,
@@ -154,13 +189,55 @@ def save_outputs(agent, rewards, occupancy_history, run_id, config, model_name):
     with (EXPERIMENTS_DIR / f"training_summary_{run_id}.json").open("w") as file:
         json.dump(summary, file, indent=2)
 
+    append_experiment_result(
+        RESULTS_PATH,
+        ExperimentResult(
+            run_id=run_id,
+            episodes=len(rewards),
+            epsilon=agent.epsilon,
+            learning_rate=config.agent.learning_rate,
+            gamma=config.agent.discount_factor,
+            average_reward=summary["average_reward"],
+            average_wait_time=summary["average_wait_time"],
+        ),
+    )
+
+
+def _average(values):
+    values = list(values)
+    return sum(values) / len(values) if values else 0
+
+
+def _log_allocation_step(
+    logger,
+    run_id,
+    episode,
+    step,
+    action,
+    reward,
+    epsilon,
+    allocation_success,
+):
+    slot = "none" if action is None else action
+    status = "success" if allocation_success else "failure"
+    logger.info(
+        "Allocation step | run_id=%s | episode=%s | step=%s | slot=%s | status=%s | reward=%.3f | epsilon=%.4f",
+        run_id,
+        episode,
+        step,
+        slot,
+        status,
+        reward,
+        epsilon,
+    )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train RL agent for Smart Parking")
     parser.add_argument(
         "--config", 
         type=str, 
-        default=str(ROOT_DIR / "configs" / "qlearning_v1.yaml"),
+        default=str(ROOT_DIR / "configs" / "qlearning.yaml"),
         help="Path to the YAML configuration file"
     )
     args = parser.parse_args()

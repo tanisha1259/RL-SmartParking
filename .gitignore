@@ -9,6 +9,7 @@ dist/
 
 models/*.pkl
 experiments/*.csv
+!experiments/results.csv
 experiments/*.json
 experiments/*.txt
 plots/*.png

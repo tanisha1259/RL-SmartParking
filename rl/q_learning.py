@@ -6,11 +6,11 @@ class QLearningAgent:
     def __init__(
         self,
         actions,
-        learning_rate=0.1,
-        discount_factor=0.95,
-        epsilon=1.0,
-        epsilon_min=0.05,
-        epsilon_decay=0.995,
+        learning_rate,
+        discount_factor,
+        epsilon,
+        epsilon_min,
+        epsilon_decay,
     ):
         self.actions = list(actions)
         self.learning_rate = learning_rate

@@ -1,8 +1,20 @@
 # Baseline Q-Learning Configuration
-learning_rate: 0.12
-discount_factor: 0.92
-epsilon_start: 1.0
-epsilon_min: 0.03
-epsilon_decay: 0.992
-episodes: 800
-model_name: "policy_v1.pkl"
+training:
+  episodes: 800
+  model_name: "policy_v1.pkl"
+
+environment:
+  slot_count: 12
+  max_steps: 80
+  arrival_chance: 0.75
+  departure_chance: 0.12
+  max_waiting: 8
+  target_occupancy: 0.85
+  seed: null
+
+agent:
+  learning_rate: 0.12
+  discount_factor: 0.92
+  epsilon_start: 1.0
+  epsilon_min: 0.03
+  epsilon_decay: 0.992

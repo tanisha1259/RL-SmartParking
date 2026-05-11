@@ -67,3 +67,20 @@ If this system were deployed in a real-world smart parking garage, we would moni
 python compare.py
 python plot_rewards.py
 ```
+## Features
+
+- Reinforcement Learning based parking allocation
+- Real-time frontend visualization
+- Dockerized deployment
+- CI/CD integration
+
+## Tech Stack
+
+- React
+- FastAPI
+- Python
+- Docker
+
+## Architecture
+
+Frontend → Backend → RL Engine → Simulator

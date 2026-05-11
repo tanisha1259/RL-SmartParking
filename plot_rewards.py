@@ -10,7 +10,7 @@ PLOTS_DIR = ROOT_DIR / "plots"
 
 
 def plot_training_rewards():
-    rewards_path = EXPERIMENTS_DIR / "rewards.csv"
+    rewards_path = EXPERIMENTS_DIR / "master_rewards.csv"
     if not rewards_path.exists():
         raise FileNotFoundError("Train first: python rl/train.py")
 
@@ -35,9 +35,10 @@ def plot_training_rewards():
 
 
 def plot_occupancy():
-    occupancy_path = EXPERIMENTS_DIR / "occupancy.csv"
-    if not occupancy_path.exists():
+    occupancy_files = list(EXPERIMENTS_DIR.glob("occupancy_run_*.csv"))
+    if not occupancy_files:
         raise FileNotFoundError("Train first: python rl/train.py")
+    occupancy_path = occupancy_files[0]
 
     episodes = []
     occupancy = []

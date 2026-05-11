@@ -103,7 +103,7 @@ def summarize(results):
 
 
 def main():
-    policy_path = MODELS_DIR / "q_policy.pkl"
+    policy_path = MODELS_DIR / "policy_v1.pkl"
     if not policy_path.exists():
         raise FileNotFoundError("Train the RL agent first: python rl/train.py")
 

@@ -136,13 +136,18 @@ class ParkingEnv:
         self.slots[action] = car
         self.cars_served += 1
 
+        # Reward 1: Reduced search time (penalize distant slots)
         distance_penalty = action / max(1, self.slot_count - 1)
-        queue_relief_bonus = min(3.0, 0.5 * len(self.waiting_cars))
-        traffic_bonus = 1.5 if self.traffic_level >= 2 and action < self.slot_count / 2 else 0
-        balanced_zone_bonus = self._zone_balance_bonus(action)
+        
+        # Reward 2: Reduced congestion (reward taking cars out of long queues)
+        reduced_congestion_bonus = min(3.0, 0.5 * len(self.waiting_cars))
+        
+        # Reward 3: Efficient parking utilization (balance zones)
+        efficient_utilization_bonus = self._zone_balance_bonus(action)
+        
         waiting_penalty = 0.25 * car["wait"]
 
-        return 12.0 + queue_relief_bonus + traffic_bonus + balanced_zone_bonus - distance_penalty - waiting_penalty
+        return 12.0 + reduced_congestion_bonus + efficient_utilization_bonus - distance_penalty - waiting_penalty
 
     def _zone_balance_bonus(self, action):
         zone_size = max(1, self.slot_count // 3)

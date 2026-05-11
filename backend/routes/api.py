@@ -35,6 +35,11 @@ def metrics():
     return jsonify(allocator.get_metrics())
 
 
+@api_bp.post("/enqueue")
+def enqueue():
+    result = allocator.enqueue()
+    return jsonify(result), 200
+
 @api_bp.post("/allocate")
 def allocate():
     result = allocator.allocate()

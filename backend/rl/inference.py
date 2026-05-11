@@ -63,6 +63,9 @@ class ParkingAllocator:
 
         self.next_car_number = 1
         self.cars_processed = 0
+        
+        # New: Waiting queue for incoming cars
+        self.waiting_queue = []
 
 
     def get_slots(self):
@@ -78,12 +81,30 @@ class ParkingAllocator:
             "free_slots": free,
             "cars_processed": self.cars_processed,
             "occupancy_percentage": round(occupancy_percentage, 2),
+            "waiting_queue_length": len(self.waiting_queue),
+        }
+
+    def enqueue(self):
+        car_id = self._next_car_id()
+        self.waiting_queue.append(car_id)
+        return {
+            "enqueued": True,
+            "message": f"Car {car_id} added to waiting queue.",
+            "waiting_queue_length": len(self.waiting_queue),
+            "metrics": self.get_metrics(),
         }
 
     def allocate(self):
-        slot = self._nearest_free_slot()
+        if not self.waiting_queue:
+            return {
+                "allocated": False,
+                "message": "No incoming cars in the waiting queue.",
+                "slot": None,
+                "metrics": self.get_metrics(),
+            }
 
-        if slot is None:
+        free_slots = [slot for slot in self.slots if not slot["occupied"]]
+        if not free_slots:
             return {
                 "allocated": False,
                 "message": "No free parking slots available.",
@@ -91,82 +112,40 @@ class ParkingAllocator:
                 "metrics": self.get_metrics(),
             }
 
+        car_id = self.waiting_queue.pop(0)
+        slot = self._select_slot(free_slots)
+        
         slot["occupied"] = True
-        slot["car_id"] = self._next_car_id()
+        slot["car_id"] = car_id
         self.cars_processed += 1
 
         return {
             "allocated": True,
-            "message": "Car allocated successfully.",
+            "message": f"Car {car_id} allocated successfully.",
             "slot": slot,
             "metrics": self.get_metrics(),
         }
 
-
-
-    def remove(self, car_id=None, slot_id=None):
-        occupied_slots = [slot for slot in self.slots if slot["occupied"]]
-
-        if not occupied_slots:
-            return {
-                "removed": False,
-                "message": "No occupied parking slots to free.",
-                "slot": None,
-            }
-
-        slot = None
-        if slot_id is not None:
-            slot = next(
-                (
-                    occupied_slot
-                    for occupied_slot in occupied_slots
-                    if occupied_slot["id"] == slot_id
-                ),
-                None,
-            )
-        elif car_id:
-            slot = next(
-                (
-                    occupied_slot
-                    for occupied_slot in occupied_slots
-                    if occupied_slot["car_id"] == car_id
-                ),
-                None,
-            )
-        else:
-            slot = occupied_slots[-1]
-
-        if slot is None:
-            return {
-                "removed": False,
-                "message": "Could not find that parked car.",
-                "slot": None,
-            }
-
-        freed_slot = slot.copy()
-        slot["occupied"] = False
-        slot["car_id"] = None
-
-        return {
-            "removed": True,
-            "message": "Parking slot freed successfully.",
-            "slot": freed_slot,
-        }
-
     def _select_slot(self, free_slots):
-
         state = self._state()
-        free_ids = [slot["id"] for slot in free_slots]
-        best_slot_id = allocate_best_slot(state, policy=self.policy, free_slots=free_ids)
+        # Fix free_ids to be indices 0 to 11 for the Q-table, not 1 to 12
+        free_indices = [slot["id"] - 1 for slot in free_slots]
+        best_slot_idx = allocate_best_slot(state, policy=self.policy, free_slots=free_indices)
 
-        if best_slot_id is None:
+        if best_slot_idx is None:
             return random.choice(free_slots)
-        return self.slots[best_slot_id]
+        return self.slots[best_slot_idx]
 
     def _state(self):
+        # State: Available parking slots (occupied=1, free=0)
         occupied = tuple(1 if slot["occupied"] else 0 for slot in self.slots)
-        waiting_bucket = 1
+        
+        # State: Incoming cars (waiting_cars)
+        waiting_bucket = min(len(self.waiting_queue), 3)
+        
+        # State: Occupancy levels (traffic_bucket)
         traffic_bucket = self._traffic_bucket()
+        
         return occupied + (waiting_bucket, traffic_bucket)
 
     def _traffic_bucket(self):

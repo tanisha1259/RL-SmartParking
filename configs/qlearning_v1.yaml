@@ -1,0 +1,8 @@
+# Baseline Q-Learning Configuration
+learning_rate: 0.12
+discount_factor: 0.92
+epsilon_start: 1.0
+epsilon_min: 0.03
+epsilon_decay: 0.992
+episodes: 800
+model_name: "policy_v1.pkl"

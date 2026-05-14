@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const API_URL = "http://localhost:5001";
-const SOCKET_URL = "http://localhost:5001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5001";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? API_URL;
 
 function App() {
   const [state, setState] = useState(null);
@@ -45,7 +45,7 @@ function App() {
       ...options,
     });
     const data = await response.json();
-    setStatus(data.message);
+    setStatus(data.message ?? "Action complete");
     if (data.allocated) {
       setLastAssignment({
         carId: data.vehicle.car_id,
@@ -70,6 +70,16 @@ function App() {
   function allocateCar() {
     setStatus("Scoring spatial slots");
     postAction("/allocate");
+  }
+
+  async function startSimulation() {
+    setStatus("Starting automatic simulation");
+    await postAction("/simulation/start");
+  }
+
+  async function stopSimulation() {
+    setStatus("Stopping automatic simulation");
+    await postAction("/simulation/stop");
   }
 
   function removeCar(slotId) {
@@ -102,6 +112,12 @@ function App() {
           <h1>RL-SmartParking Control</h1>
         </div>
         <div className="actions">
+          <button className="btn" onClick={startSimulation}>
+            Start Simulation
+          </button>
+          <button className="btn danger" onClick={stopSimulation}>
+            Stop Simulation
+          </button>
           <button className="btn ghost" onClick={loadDashboard}>Refresh</button>
           <button className="btn" onClick={enqueueCar}>Add Vehicle</button>
           <button
@@ -116,10 +132,11 @@ function App() {
 
       <section className="metrics">
         <Metric label="Available" value={metrics?.free_slots ?? 0} />
-        <Metric label="Occupied" value={metrics?.occupied_slots ?? 0} />
-        <Metric label="Queue" value={metrics?.waiting_queue_length ?? 0} accent />
+        <Metric label="Parked" value={metrics?.parked_vehicles ?? 0} />
         <Metric label="Moving" value={metrics?.moving_vehicles ?? 0} />
+        <Metric label="Queue" value={metrics?.waiting_queue_length ?? 0} accent />
         <Metric label="Occupancy" value={`${metrics?.occupancy_percentage ?? 0}%`} />
+        <Metric label="Throughput" value={metrics?.throughput ?? 0} />
       </section>
 
       <section className="control-grid">
@@ -225,9 +242,11 @@ function ParkingCanvas({ state, onRemove }) {
 
 function drawZones(context, zones, scale, offsetX, offsetY) {
   zones.forEach((zone) => {
-    const heat = zone.congestion ?? 0;
-    context.fillStyle = `rgba(${80 + heat * 170}, ${150 - heat * 70}, 70, 0.18)`;
-    context.strokeStyle = `rgba(${120 + heat * 120}, ${190 - heat * 70}, 95, 0.72)`;
+    const heat = Math.min(1, Math.max(0, zone.congestion ?? 0));
+    const red = Math.round(72 + heat * 168);
+    const green = Math.round(146 - heat * 60);
+    context.fillStyle = `rgba(${red}, ${green}, 74, ${0.12 + heat * 0.24})`;
+    context.strokeStyle = `rgba(${red}, ${green + 45}, 95, 0.72)`;
     context.lineWidth = 2;
     context.fillRect(offsetX + zone.x * scale, offsetY + zone.y * scale, zone.width * scale, zone.height * scale);
     context.strokeRect(offsetX + zone.x * scale, offsetY + zone.y * scale, zone.width * scale, zone.height * scale);
@@ -264,19 +283,39 @@ function drawSlots(context, slots, project) {
     const height = 58;
     const x = point.x - width / 2;
     const y = point.y - height / 2;
-    context.fillStyle = slot.occupied ? "#a94b48" : "#5a8f63";
-    context.strokeStyle = slot.occupied ? "#ffd0cb" : "#d7f4d1";
+    let fillColor = "#5a8f63";
+    let strokeColor = "#d7f4d1";
+    const status = slot.status ?? (slot.occupied ? "occupied" : "available");
+    if (status === "reserved") {
+      fillColor = "#eab308";
+      strokeColor = "#fff3bf";
+    }
+
+    else if (status === "occupied") {
+      fillColor = "#ef4444";
+      strokeColor = "#ffd0cb";
+    }
+
+    context.fillStyle = fillColor;
+    context.strokeStyle = strokeColor;
     context.lineWidth = 2;
     context.fillRect(x, y, width, height);
     context.strokeRect(x, y, width, height);
     context.fillStyle = "#f8fbf4";
     context.font = "700 12px Inter, sans-serif";
     context.fillText(slot.id, x + 10, y + 18);
-    if (slot.occupied) {
+    if (status !== "available") {
       context.fillStyle = "#2a1718";
       context.fillRect(x + 9, y + 28, 28, 18);
     }
-    return { id: slot.id, occupied: slot.occupied, x, y, width, height };
+    return {
+      id: slot.id,
+      occupied: status !== "available",
+      x,
+      y,
+      width,
+      height
+    };
   });
 }
 
@@ -322,7 +361,7 @@ function ZoneCard({ zoneId, stats, slots }) {
       <p>
         {stats?.available_slots ?? 0} free of {stats?.total_slots ?? slots.length}
         <br />
-        {stats?.moving_vehicles ?? 0} moving | {stats?.occupancy_percentage ?? 0}% occupied
+        {stats?.reserved_slots ?? 0} reserved | {stats?.moving_vehicles ?? 0} moving
       </p>
     </article>
   );

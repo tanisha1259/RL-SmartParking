@@ -26,16 +26,45 @@ def plot_training_rewards():
     PLOTS_DIR.mkdir(exist_ok=True)
     plt.figure(figsize=(10, 5))
     plt.plot(episodes, rewards)
-    plt.title("Q-learning Training Rewards")
+    plt.title("Reward vs Episode")
     plt.xlabel("Episode")
     plt.ylabel("Reward")
     plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "training_rewards.png")
-    print(f"Plot saved to {PLOTS_DIR / 'training_rewards.png'}")
+    plt.savefig(PLOTS_DIR / "reward_vs_episode.png")
+    print(f"Plot saved to {PLOTS_DIR / 'reward_vs_episode.png'}")
+
+
+def plot_training_metric(column, output_name, title, ylabel, color):
+    rewards_path = EXPERIMENTS_DIR / "master_rewards.csv"
+    if not rewards_path.exists():
+        raise FileNotFoundError("Train first: python rl/train.py")
+
+    episodes = []
+    values = []
+    with rewards_path.open() as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if column not in row or row[column] in ("", None):
+                continue
+            episodes.append(int(row["episode"]))
+            values.append(float(row[column]))
+
+    if not values:
+        return
+
+    PLOTS_DIR.mkdir(exist_ok=True)
+    plt.figure(figsize=(10, 5))
+    plt.plot(episodes, values, color=color)
+    plt.title(title)
+    plt.xlabel("Episode")
+    plt.ylabel(ylabel)
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / output_name)
+    print(f"Plot saved to {PLOTS_DIR / output_name}")
 
 
 def plot_occupancy():
-    occupancy_files = list(EXPERIMENTS_DIR.glob("occupancy_run_*.csv"))
+    occupancy_files = list(EXPERIMENTS_DIR.glob("occupancy_*.csv"))
     if not occupancy_files:
         raise FileNotFoundError("Train first: python rl/train.py")
     occupancy_path = occupancy_files[0]
@@ -57,8 +86,8 @@ def plot_occupancy():
     plt.ylabel("Average occupancy")
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.savefig(PLOTS_DIR / "occupancy.png")
-    print(f"Plot saved to {PLOTS_DIR / 'occupancy.png'}")
+    plt.savefig(PLOTS_DIR / "occupancy_vs_time.png")
+    print(f"Plot saved to {PLOTS_DIR / 'occupancy_vs_time.png'}")
 
 
 def plot_comparison():
@@ -114,5 +143,22 @@ def plot_comparison():
 
 if __name__ == "__main__":
     plot_training_rewards()
+    plot_training_metric(
+        "avg_traffic_level",
+        "congestion_vs_time.png",
+        "Congestion vs Time",
+        "Average traffic level",
+        "#b7605d",
+    )
+    plot_training_metric(
+        "cars_served",
+        "throughput_vs_time.png",
+        "Throughput vs Time",
+        "Cars served",
+        "#4aa3a2",
+    )
     plot_occupancy()
-    plot_comparison()
+    try:
+        plot_comparison()
+    except FileNotFoundError as error:
+        print(error)

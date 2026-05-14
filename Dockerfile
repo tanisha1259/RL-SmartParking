@@ -10,6 +10,7 @@ COPY backend/requirements.txt ./backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 COPY backend ./backend
+COPY app.py ./app.py
 COPY configs ./configs
 COPY models ./models
 COPY rl ./rl
@@ -17,4 +18,4 @@ COPY sim ./sim
 
 EXPOSE 5001
 
-CMD ["python", "-m", "flask", "--app", "backend.app:create_app", "run", "--host=0.0.0.0", "--port=5001"]
+CMD ["python", "app.py"]

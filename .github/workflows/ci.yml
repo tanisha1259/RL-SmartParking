@@ -23,4 +23,7 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Compile Python files
-        run: python -m compileall backend rl sim compare.py plot_rewards.py
+        run: python -m compileall backend rl sim compare.py plot_rewards.py app.py
+
+      - name: Run tests
+        run: pytest -q

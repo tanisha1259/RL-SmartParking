@@ -6,6 +6,7 @@ from rl.inference import ParkingAllocator
 api_bp = Blueprint("api", __name__)
 allocator = ParkingAllocator()
 motion_updates_running = False
+simulation_running = False
 
 
 @api_bp.get("/")
@@ -23,6 +24,8 @@ def home():
                 "GET /dqn/state": "DQN-ready observation and encoded vector",
                 "POST /allocate": "Allocate using weighted congestion-aware scoring",
                 "POST /remove": "Remove a car from a slot",
+                "POST /simulation/start": "Start automatic vehicle arrivals and exits",
+                "POST /simulation/stop": "Stop automatic vehicle arrivals",
             },
         }
     )
@@ -88,11 +91,52 @@ def remove():
     _emit_state()
     return jsonify(result), status_code
 
+@api_bp.post("/simulation/start")
+def start_simulation():
+    global simulation_running
+
+    if not simulation_running:
+        simulation_running = True
+
+        if socketio:
+            socketio.start_background_task(
+                _auto_simulation_loop
+            )
+
+    return jsonify({
+        "running": simulation_running,
+        "message": "Automatic simulation started.",
+        "state": allocator.get_state(),
+    })
+
+
+@api_bp.post("/simulation/stop")
+def stop_simulation():
+    global simulation_running
+
+    simulation_running = False
+
+    return jsonify({
+        "running": simulation_running,
+        "message": "Automatic simulation stopped.",
+        "state": allocator.get_state(),
+    })
 
 def _emit_state():
     if socketio:
         socketio.emit("parking_state", allocator.get_state())
 
+def _auto_simulation_loop():
+    global simulation_running
+
+    while simulation_running:
+        socketio.sleep(5)
+        allocator.enqueue()
+        allocation = allocator.allocate()
+        if allocation["allocated"]:
+            _start_motion_updates()
+        allocator.update_vehicle_lifecycle()
+        _emit_state()
 
 def _start_motion_updates():
     global motion_updates_running
@@ -104,13 +148,14 @@ def _start_motion_updates():
 def _motion_update_loop():
     global motion_updates_running
     try:
-        for _ in range(40):
-            socketio.sleep(0.25)
+        while motion_updates_running:
+            socketio.sleep(0.2)
             _emit_state()
             vehicles = allocator.get_moving_vehicles()
-            if vehicles and all(vehicle["status"] == "parked" for vehicle in vehicles):
+            if not vehicles and not simulation_running:
                 break
-            if not vehicles:
+            if not any(v["status"] == "moving" for v in vehicles) and not simulation_running:
                 break
     finally:
         motion_updates_running = False
+

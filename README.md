@@ -11,7 +11,7 @@ Urban parking facilities often suffer from inefficient slot assignment, long que
 The application includes:
 
 - A parking-lot simulator that models arrivals, departures, waiting queues, occupancy, and congestion.
-- A Q-learning agent that learns slot allocation policies through interaction with the simulator.
+- A Q-learning baseline and lightweight DQN agent that learn slot allocation policies through interaction with the simulator.
 - A Flask backend that exposes parking state, metrics, queueing, allocation, and removal APIs.
 - A React + Vite frontend for interactive parking visualization.
 - MLOps additions for configuration management, experiment tracking, logging, Docker execution, and CI validation.
@@ -33,8 +33,8 @@ Parking inefficiency contributes to congestion, longer search times, higher fuel
 The parking allocation task is treated as a reinforcement learning problem:
 
 - **Environment:** The simulated parking lot in `sim/parking_env.py`.
-- **Agent:** The Q-learning agent in `rl/q_learning.py`.
-- **State:** A discrete representation of occupied slots, waiting pressure, and traffic pressure.
+- **Agent:** The heuristic allocator, Q-learning baseline, and lightweight DQN in `rl/dqn_model.py`.
+- **State:** Occupancy, congestion/zone pressure, incoming demand, and valid slot availability.
 - **Action:** Selection of a parking slot from the available slots.
 - **Reward:** A composite signal that rewards successful allocation, efficient occupancy, queue reduction, and zone balance while penalizing invalid decisions, waiting, congestion, and inefficient allocation.
 - **Episode:** A fixed-length simulator run consisting of multiple parking arrival/departure steps.
@@ -67,7 +67,24 @@ Where:
 - `epsilon` controls exploration.
 - `epsilon_decay` gradually shifts behavior from exploration to exploitation.
 
-All Q-learning hyperparameters are managed through YAML configuration files in `configs/`.
+All Q-learning and DQN hyperparameters are managed through YAML configuration files in `configs/`.
+
+## Lightweight DQN
+
+The DQN path is intentionally compact for academic reproducibility:
+
+- Input layer from simulator state features.
+- Hidden layers of 128 and 64 units.
+- Output layer with one Q-value per parking slot.
+- Epsilon-greedy exploration, replay buffer, target network updates, reward tracking, and policy persistence.
+
+Train it with:
+
+```bash
+python rl/train.py --config configs/dqn_v1.yaml
+```
+
+The run saves `models/policy_v1.pkl`, `models/policy_v2.pkl`, per-run reward CSVs, `experiments/results.csv`, and `experiments/log.json`.
 
 ## Folder Structure
 

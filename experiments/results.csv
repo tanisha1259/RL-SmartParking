@@ -1,1 +1,2 @@
 run_id,timestamp,episodes,epsilon,learning_rate,gamma,average_reward,average_wait_time
+dqn_e6b2a870,2026-05-14T18:33:13.557070+00:00,120,0.1631,0.001,0.92,884.973,1.754,0.507,75.292,3.368

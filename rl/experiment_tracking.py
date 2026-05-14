@@ -12,6 +12,9 @@ RESULT_FIELDS = [
     "learning_rate",
     "gamma",
     "average_reward",
+    "congestion_score",
+    "average_distance",
+    "throughput",
     "average_wait_time",
 ]
 
@@ -25,6 +28,9 @@ class ExperimentResult:
     gamma: float
     average_reward: float
     average_wait_time: float
+    congestion_score: float = 0.0
+    average_distance: float = 0.0
+    throughput: float = 0.0
 
     def to_row(self):
         return {
@@ -35,6 +41,9 @@ class ExperimentResult:
             "learning_rate": self.learning_rate,
             "gamma": self.gamma,
             "average_reward": round(self.average_reward, 3),
+            "congestion_score": round(self.congestion_score, 3),
+            "average_distance": round(self.average_distance, 3),
+            "throughput": round(self.throughput, 3),
             "average_wait_time": round(self.average_wait_time, 3),
         }
 

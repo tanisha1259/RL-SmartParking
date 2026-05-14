@@ -1,0 +1,27 @@
+algorithm: dqn
+seed: 42
+
+training:
+  episodes: 120
+  model_name: "policy_v1.pkl"
+  shadow_model_name: "policy_v2.pkl"
+
+environment:
+  slot_count: 18
+  max_steps: 80
+  arrival_chance: 0.75
+  departure_chance: 0.12
+  max_waiting: 8
+  target_occupancy: 0.85
+  seed: 42
+
+agent:
+  hidden_sizes: [128, 64]
+  learning_rate: 0.001
+  gamma: 0.92
+  epsilon_start: 1.0
+  epsilon_min: 0.05
+  epsilon_decay: 0.985
+  replay_capacity: 2000
+  batch_size: 32
+  target_update_interval: 10

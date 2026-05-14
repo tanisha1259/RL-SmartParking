@@ -1,0 +1,70 @@
+{
+  "width": 900,
+  "height": 560,
+  "entry": { "id": "ENTRY", "x": 40, "y": 280 },
+  "exit": { "id": "EXIT", "x": 860, "y": 280 },
+  "roads": [
+    { "id": "main-road", "x": 40, "y": 255, "width": 820, "height": 50 },
+    { "id": "zone-a-aisle", "x": 145, "y": 120, "width": 50, "height": 320 },
+    { "id": "zone-b-aisle", "x": 425, "y": 120, "width": 50, "height": 320 },
+    { "id": "zone-c-aisle", "x": 705, "y": 120, "width": 50, "height": 320 }
+  ],
+  "lanes": [
+    { "id": "entry-lane", "points": [{ "x": 40, "y": 280 }, { "x": 860, "y": 280 }] },
+    { "id": "zone-a-lane", "points": [{ "x": 170, "y": 120 }, { "x": 170, "y": 440 }] },
+    { "id": "zone-b-lane", "points": [{ "x": 450, "y": 120 }, { "x": 450, "y": 440 }] },
+    { "id": "zone-c-lane", "points": [{ "x": 730, "y": 120 }, { "x": 730, "y": 440 }] }
+  ],
+  "roadGraph": {
+    "nodes": [
+      { "id": "ENTRY", "x": 40, "y": 280 },
+      { "id": "A_JUNCTION", "x": 170, "y": 280 },
+      { "id": "B_JUNCTION", "x": 450, "y": 280 },
+      { "id": "C_JUNCTION", "x": 730, "y": 280 },
+      { "id": "EXIT", "x": 860, "y": 280 },
+      { "id": "A_TOP", "x": 170, "y": 120 },
+      { "id": "A_BOTTOM", "x": 170, "y": 440 },
+      { "id": "B_TOP", "x": 450, "y": 120 },
+      { "id": "B_BOTTOM", "x": 450, "y": 440 },
+      { "id": "C_TOP", "x": 730, "y": 120 },
+      { "id": "C_BOTTOM", "x": 730, "y": 440 }
+    ],
+    "edges": [
+      ["ENTRY", "A_JUNCTION"],
+      ["A_JUNCTION", "B_JUNCTION"],
+      ["B_JUNCTION", "C_JUNCTION"],
+      ["C_JUNCTION", "EXIT"],
+      ["A_JUNCTION", "A_TOP"],
+      ["A_JUNCTION", "A_BOTTOM"],
+      ["B_JUNCTION", "B_TOP"],
+      ["B_JUNCTION", "B_BOTTOM"],
+      ["C_JUNCTION", "C_TOP"],
+      ["C_JUNCTION", "C_BOTTOM"]
+    ]
+  },
+  "slots": [
+    { "id": "A1", "x": 95, "y": 130, "zone": "A", "aisleNode": "A_TOP", "occupied": false },
+    { "id": "A2", "x": 95, "y": 205, "zone": "A", "aisleNode": "A_JUNCTION", "occupied": false },
+    { "id": "A3", "x": 95, "y": 355, "zone": "A", "aisleNode": "A_BOTTOM", "occupied": false },
+    { "id": "A4", "x": 205, "y": 130, "zone": "A", "aisleNode": "A_TOP", "occupied": false },
+    { "id": "A5", "x": 205, "y": 205, "zone": "A", "aisleNode": "A_JUNCTION", "occupied": false },
+    { "id": "A6", "x": 205, "y": 355, "zone": "A", "aisleNode": "A_BOTTOM", "occupied": false },
+    { "id": "B1", "x": 375, "y": 130, "zone": "B", "aisleNode": "B_TOP", "occupied": false },
+    { "id": "B2", "x": 375, "y": 205, "zone": "B", "aisleNode": "B_JUNCTION", "occupied": false },
+    { "id": "B3", "x": 375, "y": 355, "zone": "B", "aisleNode": "B_BOTTOM", "occupied": false },
+    { "id": "B4", "x": 485, "y": 130, "zone": "B", "aisleNode": "B_TOP", "occupied": false },
+    { "id": "B5", "x": 485, "y": 205, "zone": "B", "aisleNode": "B_JUNCTION", "occupied": false },
+    { "id": "B6", "x": 485, "y": 355, "zone": "B", "aisleNode": "B_BOTTOM", "occupied": false },
+    { "id": "C1", "x": 655, "y": 130, "zone": "C", "aisleNode": "C_TOP", "occupied": false },
+    { "id": "C2", "x": 655, "y": 205, "zone": "C", "aisleNode": "C_JUNCTION", "occupied": false },
+    { "id": "C3", "x": 655, "y": 355, "zone": "C", "aisleNode": "C_BOTTOM", "occupied": false },
+    { "id": "C4", "x": 765, "y": 130, "zone": "C", "aisleNode": "C_TOP", "occupied": false },
+    { "id": "C5", "x": 765, "y": 205, "zone": "C", "aisleNode": "C_JUNCTION", "occupied": false },
+    { "id": "C6", "x": 765, "y": 355, "zone": "C", "aisleNode": "C_BOTTOM", "occupied": false }
+  ],
+  "zones": [
+    { "id": "A", "label": "Zone A", "x": 70, "y": 90, "width": 210, "height": 380 },
+    { "id": "B", "label": "Zone B", "x": 350, "y": 90, "width": 210, "height": 380 },
+    { "id": "C", "label": "Zone C", "x": 630, "y": 90, "width": 210, "height": 380 }
+  ]
+}

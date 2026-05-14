@@ -1,0 +1,46 @@
+# Lightweight Q-learning configuration used by GitHub Actions.
+
+training:
+  # Keep CI fast while still executing the real training entrypoint.
+  episodes: 2
+
+  # CI-generated model artifact name.
+  model_name: "ci_policy.pkl"
+
+environment:
+  # Small action space for fast CI feedback.
+  slot_count: 4
+
+  # Short episodes keep the workflow lightweight.
+  max_steps: 5
+
+  # Deterministic arrival probability for predictable CI execution.
+  arrival_chance: 0.75
+
+  # Probability that an occupied slot becomes free at each step.
+  departure_chance: 0.12
+
+  # Maximum waiting queue length before cars are rejected.
+  max_waiting: 3
+
+  # Target occupancy used by the simulator reward function.
+  target_occupancy: 0.85
+
+  # Fixed seed improves CI reproducibility.
+  seed: 42
+
+agent:
+  # Learning rate for Q-value updates.
+  learning_rate: 0.12
+
+  # Future reward discount factor, also known as gamma.
+  discount_factor: 0.92
+
+  # Initial epsilon for exploration.
+  epsilon_start: 1.0
+
+  # Minimum epsilon after decay.
+  epsilon_min: 0.03
+
+  # Per-episode epsilon decay factor.
+  epsilon_decay: 0.992

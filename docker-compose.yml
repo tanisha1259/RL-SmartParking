@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rl-smartparking-backend
+    environment:
+      FLASK_ENV: production
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "5001:5001"
+    restart: unless-stopped

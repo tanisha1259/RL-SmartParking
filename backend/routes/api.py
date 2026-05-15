@@ -128,7 +128,6 @@ def _emit_state():
 
 def _auto_simulation_loop():
     global simulation_running
-
     while simulation_running:
         socketio.sleep(5)
         allocator.enqueue()

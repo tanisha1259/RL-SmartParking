@@ -3,7 +3,6 @@ from pathlib import Path
 
 import yaml
 
-
 @dataclass(frozen=True)
 class TrainingConfig:
     episodes: int

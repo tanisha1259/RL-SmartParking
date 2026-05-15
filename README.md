@@ -1,6 +1,6 @@
 # RL-SmartParking
 
-RL-SmartParking is a reinforcement learning based smart parking allocation system. The project combines a Q-learning training pipeline, a simulated parking environment, a Flask backend API, and a React frontend dashboard to study how data-driven parking allocation can reduce waiting time, improve slot utilization, and support more efficient urban mobility.
+RL-SmartParking is a reinforcement learning based smart parking allocation system. The project combines Reinforcement Learning training pipelines including Q-learning and lightweight DQN models, a simulated parking environment, a Flask backend API, and a React frontend dashboard to study how data-driven parking allocation can reduce waiting time, improve slot utilization, and support more efficient urban mobility.
 
 The system is structured as a compact MLOps project: model behavior is configured through YAML files, training runs produce reproducible artifacts, experiment metrics are appended to a persistent results ledger, policies are saved for inference, and backend validation is automated through GitHub Actions.
 
@@ -97,7 +97,7 @@ docker/               Legacy backend Dockerfile
 experiments/          Experiment summaries, rewards, and result tracking
 frontend/             React + Vite frontend dashboard
 logs/                 Training log output
-models/               Saved Q-learning policy artifacts
+models/               Saved RL policy artifacts
 plots/                Generated evaluation plots
 rl/                   Q-learning agent, training, config, logging, tracking
 sim/                  Parking environment simulator
@@ -158,6 +158,11 @@ Default canonical config:
 ```bash
 python rl/train.py --config configs/qlearning.yaml
 ```
+Lightweight DQN experiment:
+
+```bash
+python rl/train.py --config configs/dqn_v1.yaml
+```
 
 CI uses a lightweight configuration:
 
@@ -166,6 +171,8 @@ python rl/train.py --config configs/qlearning_ci.yaml
 ```
 
 Each run creates a unique `run_id`, saves run-specific outputs, appends metrics to `experiments/results.csv`, and writes readable INFO logs to `logs/training.log`.
+
+Versioned models such as `policy_v1.pkl` and `policy_v2.pkl` support rollback and reproducible inference workflows.
 
 ## Running Backend And Frontend
 
@@ -261,16 +268,20 @@ logs/training.log
 
 The logs include episode number, reward, chosen parking slot, epsilon value, and allocation success or failure.
 
+The lightweight experiment tracking workflow is designed to support future integration with enterprise MLOps platforms such as MLflow and Kubeflow.
+
 ## Policy Saving
 
-After training, the learned Q-table policy is serialized with `pickle` and saved in the `models/` directory. The model filename is controlled by the selected YAML config:
+After training, the learned RL policy is serialized with `pickle` and saved in the `models/` directory. The model filename is controlled by the selected YAML config:
 
 ```yaml
 training:
   model_name: "policy_v1.pkl"
 ```
 
-Saved policies are used by the backend inference helper to allocate parking slots. If no saved policy is available, the backend falls back to a simple nearest/free-slot style behavior so API execution remains stable.
+Saved policies such as `policy_v1.pkl` and `policy_v2.pkl` are used by the backend inference helper for reproducible inference, model comparison, and rollback to stable policy versions.
+
+If no saved policy is available, the backend falls back to a simple nearest/free-slot style behavior so API execution remains stable.
 
 ## CI/CD
 
@@ -291,6 +302,8 @@ The workflow runs on every push and performs the following checks:
 
 Any dependency, import, backend, or training execution error fails the workflow.
 
+Tagged releases and versioned configurations support rollback and reproducibility within the MLOps workflow.
+
 ## Monitoring Plan
 
 In a real-world deployment, the following metrics should be monitored continuously:
@@ -305,6 +318,16 @@ In a real-world deployment, the following metrics should be monitored continuous
 - **Policy drift:** Detects degradation when real traffic patterns diverge from training assumptions.
 
 Operationally, these metrics could be exported to a dashboard such as Grafana or a managed observability platform. Alerts should be configured for sustained reward degradation, rising wait time, excessive rejection rates, and sudden changes in occupancy behavior.
+
+## Engineering Trade-offs
+
+The project prioritizes reproducibility, portability, and lightweight deployment over large-scale infrastructure complexity.
+
+A compact DQN architecture was selected instead of computationally expensive deep RL models to support CPU-based execution and faster experimentation.
+
+The simulator currently models a single-floor parking environment to maintain interpretable state representation and manageable training complexity.
+
+The lightweight MLOps workflow focuses on practical experiment tracking, Docker deployment, CI/CD automation, configuration management, and reproducible evaluation instead of complex cloud-native orchestration systems.
 
 ## Future Improvements
 

@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
-
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5001";
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? API_URL;
-
 function App() {
   const [state, setState] = useState(null);
   const [status, setStatus] = useState("Connecting to simulation");
   const [manualSlotId, setManualSlotId] = useState("");
   const [lastAssignment, setLastAssignment] = useState(null);
-
   const loadDashboard = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/state`);
@@ -20,7 +17,6 @@ function App() {
       setStatus("Backend is not reachable on port 5001");
     }
   }, []);
-
   useEffect(() => {
     loadDashboard();
     const socket = io(SOCKET_URL, { transports: ["websocket", "polling"] });
@@ -30,14 +26,12 @@ function App() {
     });
     socket.on("connect", () => setStatus("Socket.IO connected"));
     socket.on("disconnect", () => setStatus("Socket.IO disconnected, polling fallback active"));
-
     const interval = window.setInterval(loadDashboard, 1400);
     return () => {
       socket.disconnect();
       window.clearInterval(interval);
     };
   }, [loadDashboard]);
-
   async function postAction(endpoint, options) {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",

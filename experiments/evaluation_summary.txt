@@ -1,0 +1,8 @@
+RL Smart Parking Evaluation Summary
+===================================
+Episodes: 150
+RL average reward: 887.735
+Baseline average reward: 841.712
+Reward lift: 46.023
+RL average occupancy: 0.448
+Baseline average occupancy: 0.667

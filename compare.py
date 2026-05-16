@@ -8,7 +8,6 @@ from pathlib import Path
 from rl.dqn_model import DQNModel
 from sim.parking_env import ParkingEnv
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 MODELS_DIR = ROOT_DIR / "models"
 EXPERIMENTS_DIR = ROOT_DIR / "experiments"
